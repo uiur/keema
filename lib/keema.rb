@@ -1,8 +1,9 @@
 # frozen_string_literal: true
 
 require_relative "keema/version"
+require_relative "keema/resource"
 
 module Keema
-  class Error < StandardError; end
+  class RuntimeError < StandardError; end
   # Your code goes here...
 end
