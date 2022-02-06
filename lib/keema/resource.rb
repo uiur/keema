@@ -33,12 +33,22 @@ module Keema
       end
 
       def cast_value(value)
-        case
-        when type == Time
-          value.iso8601(3)
-        else
-          value
+        is_array = type.is_a?(Array)
+        sub_type = is_array ? type.first : type
+        values = is_array ? value : [value]
+
+        result = values.map do |value|
+          case
+          when sub_type == Time
+            value.iso8601(3)
+          when sub_type.respond_to?(:is_keema_resource_class?) && sub_type.is_keema_resource_class?
+            sub_type.new(value).serialize
+          else
+            value
+          end
         end
+
+        is_array ? result : result.first
       end
 
       def to_json_schema(openapi: false)
@@ -74,10 +84,11 @@ module Keema
           result = type_to_json_schema(type.values.first.class, openapi: openapi)
           result[:enum] = type.values
           result
-
         when type.is_a?(Array)
           item_type = type.first
           { type: :array, items: type_to_json_schema(item_type, openapi: openapi) }
+        when type.respond_to?(:to_json_schema)
+          type.to_json_schema(openapi: openapi)
         else
           raise "unsupported type #{type}"
         end
@@ -104,6 +115,10 @@ module Keema
         end
 
         klass
+      end
+
+      def is_keema_resource_class?
+        true
       end
 
       def to_json_schema(openapi: false)
