@@ -1,11 +1,12 @@
 # frozen_string_literal: true
 
 RSpec.describe Keema::Resource do
-  Product = Struct.new(:id, :name, :created_at, :description, :out_of_stock, :tags, :image_url, keyword_init: true)
+  Product = Struct.new(:id, :name, :price, :created_at, :description, :out_of_stock, :tags, :image_url, keyword_init: true)
 
   class ProductResource < Keema::Resource
     field :id, Integer
     field :name, String
+    field :price, Float
     # field :status, enum: [:published, :unpublished]
     field :description, String, null: true
     field :image_url, String, optional: true
@@ -17,7 +18,7 @@ RSpec.describe Keema::Resource do
   end
 
   let(:product) do
-    Product.new(id: 1, name: "foo", description: nil, out_of_stock: false, tags: ['food', 'sushi'], image_url: 'foo.png', created_at: Time.now)
+    Product.new(id: 1, name: "foo", price: 12.3, description: nil, out_of_stock: false, tags: ['food', 'sushi'], image_url: 'foo.png', created_at: Time.now)
   end
 
   it do
@@ -26,6 +27,7 @@ RSpec.describe Keema::Resource do
     expect(hash).to match(
       id: 1,
       name: 'foo',
+      price: 12.3,
       description: nil,
       image_url: 'foo.png',
       out_of_stock: false,

@@ -44,7 +44,8 @@ module Keema
       def type_to_json_schema(type, openapi: false)
         case
         when type == Integer
-          # todo: support openapi integer
+          { type: :integer }
+        when type == Float
           { type: :number }
         when type == String
           { type: :string }
