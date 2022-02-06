@@ -3,6 +3,13 @@ require 'time'
 module Keema
   module Type
     class Boolean; end
+
+    class Enum
+      attr_reader :values
+      def initialize(values)
+        @values = values
+      end
+    end
   end
 
   class Resource
@@ -12,9 +19,17 @@ module Keema
       attr_reader :name, :type, :null, :optional
       def initialize(name:, type:, null: false, optional: false)
         @name = name
-        @type = type
+        @type = convert_type(type)
         @null = null
         @optional = optional
+      end
+
+      def convert_type(type)
+        if type.is_a?(Hash) && type[:enum]
+          ::Keema::Type::Enum.new(type[:enum])
+        else
+          type
+        end
       end
 
       def cast_value(value)
@@ -47,7 +62,7 @@ module Keema
           { type: :integer }
         when type == Float
           { type: :number }
-        when type == String
+        when type == String || type == Symbol
           { type: :string }
         when type == Date
           { type: :string, format: :date }
@@ -55,6 +70,11 @@ module Keema
           { type: :string, format: :'date-time' }
         when type == Boolean
           { type: :boolean }
+        when type.is_a?(::Keema::Type::Enum)
+          result = type_to_json_schema(type.values.first.class, openapi: openapi)
+          result[:enum] = type.values
+          result
+
         when type.is_a?(Array)
           item_type = type.first
           { type: :array, items: type_to_json_schema(item_type, openapi: openapi) }
