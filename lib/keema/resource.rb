@@ -105,11 +105,8 @@ module Keema
         @fields ||= {}
       end
 
-      def select(field_names)
-        klass = Class.new do
-          include BaseResource
-        end
-
+      def partial(field_names)
+        klass = Class.new(self.superclass)
         field_names.each do |name|
           klass.fields[name] = fields[name].dup
         end

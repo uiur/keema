@@ -64,6 +64,17 @@ RSpec.describe Keema::Resource do
         puts JSON.pretty_generate(ProductResource.to_json_schema)
       end
     end
+
+    describe '.partial' do
+      it 'returns partial resource class' do
+        partial_resource_klass = ProductResource.partial([:id, :name])
+        expect(partial_resource_klass.to_json_schema).to match(Hash)
+        expect(partial_resource_klass.new(product).serialize).to match(
+          id: Integer,
+          name: String
+        )
+      end
+    end
   end
 
   describe 'nested resource' do
