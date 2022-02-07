@@ -1,11 +1,12 @@
 module Keema
   class Operation
-    attr_reader :path, :method, :responses, :parameters
-    def initialize(path:, method:, responses:, parameters: [])
+    attr_reader :path, :method, :responses, :parameters, :body
+    def initialize(path:, method:, responses:, body: nil, parameters: [])
       @path = path
       @method = method
       @responses = responses
       @parameters = parameters
+      @body = body
     end
   end
 
@@ -34,6 +35,17 @@ module Keema
               schema: { type: :string }
             }
           end
+
+        if operation.body
+          paths[path][method][:requestBody] = {
+            content: {
+              'application/json' => {
+                schema: operation.body.to_json_schema(openapi: true)
+              }
+            },
+            required: true
+          }
+        end
 
         paths[path][method][:responses] = operation.responses.map do |key, value|
           schema =

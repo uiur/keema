@@ -40,10 +40,36 @@ RSpec.describe Keema do
       }
     )
 
+    schema.operations << Keema::Operation.new(
+      path: '/products',
+      method: :post,
+      body: ProductResource.partial([:name]),
+      responses: {
+        200 => ProductResource,
+      }
+    )
+
+    schema.operations << Keema::Operation.new(
+      path: '/products/{id}',
+      method: :patch,
+      body: ProductResource.partial([:name]),
+      responses: {
+        200 => ProductResource,
+      }
+    )
+
+    schema.operations << Keema::Operation.new(
+      path: '/products/{id}',
+      method: :delete,
+      responses: {
+        200 => ProductResource,
+      }
+    )
+
     pp schema.to_openapi
-    # require 'yaml'
-    # File.open('./spec.yaml', 'w') do |f|
-    #   f.write(YAML.dump(deep_stringify(schema.to_openapi)))
-    # end
+    require 'yaml'
+    File.open('./spec.yaml', 'w') do |f|
+      f.write(YAML.dump(deep_stringify(schema.to_openapi)))
+    end
   end
 end
