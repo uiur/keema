@@ -28,7 +28,7 @@ RSpec.describe Keema do
         { name: :per_page, in: :query, schema: { type: :integer, default: 20 }, required: false  },
       ],
       responses: {
-        200 => [ProductResource],
+        '2XX' => [ProductResource],
       }
     )
 
@@ -36,7 +36,7 @@ RSpec.describe Keema do
       path: '/products/{id}',
       method: :get,
       responses: {
-        200 => ProductResource,
+        '2XX' => ProductResource,
       }
     )
 
@@ -45,7 +45,7 @@ RSpec.describe Keema do
       method: :post,
       body: ProductResource.partial([:name]),
       responses: {
-        200 => ProductResource,
+        '2XX' => ProductResource,
       }
     )
 
@@ -54,7 +54,7 @@ RSpec.describe Keema do
       method: :patch,
       body: ProductResource.partial([:name]),
       responses: {
-        200 => ProductResource,
+        '2XX' => ProductResource,
       }
     )
 
@@ -62,7 +62,7 @@ RSpec.describe Keema do
       path: '/products/{id}',
       method: :delete,
       responses: {
-        200 => ProductResource,
+        '2XX' => ProductResource,
       }
     )
 
