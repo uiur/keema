@@ -1,12 +1,40 @@
 module Keema
   class Operation
-    attr_reader :path, :method, :responses, :parameters, :body
+    attr_reader :path, :method, :responses, :body
     def initialize(path:, method:, responses:, body: nil, parameters: [])
       @path = path
       @method = method
       @responses = responses
       @parameters = parameters
       @body = body
+    end
+
+    def parameters
+      @parameters || []
+    end
+  end
+
+  class Parameter
+    attr_reader :name, :field, :required, :default
+    def initialize(name:, field:, required: true, default: nil)
+      @name = name
+      @field = field
+      @required = required
+      @default = default
+    end
+
+    def to_openapi
+      hash = {
+        name: name,
+        schema: field.to_json_schema(openapi: true),
+        required: true
+      }.merge(in: :query)
+
+      if default
+        hash[:default] = default
+      end
+
+      hash
     end
   end
 
@@ -24,7 +52,13 @@ module Keema
         paths[path] ||= {}
         paths[path][method] ||= {}
         paths[path][method][:parameters] ||= []
-        paths[path][method][:parameters] += operation.parameters
+        paths[path][method][:parameters] += operation.parameters.map do |parameter|
+          if parameter.respond_to?(:to_openapi)
+            parameter.to_openapi.merge(in: :query)
+          else
+            parameter
+          end
+        end
 
         paths[path][method][:parameters] +=
           path.scan(/\{(.*?)\}/).map do |(name)|
@@ -48,6 +82,7 @@ module Keema
         end
 
         paths[path][method][:responses] = operation.responses.map do |key, value|
+          next unless value
           schema =
             if value.is_a?(Array)
               { type: :array, items: value.first.to_json_schema(openapi: true) }
@@ -66,7 +101,7 @@ module Keema
               }
             }
           ]
-        end.to_h
+        end.compact.to_h
       end
 
       {
