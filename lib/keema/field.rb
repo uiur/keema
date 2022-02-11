@@ -72,7 +72,7 @@ module Keema
         { type: :string, format: :date }
       when type == Time
         { type: :string, format: :'date-time' }
-      when type == ::Keema::Type::Boolean
+      when type == ::Keema::Type::Bool
         { type: :boolean }
       when type.is_a?(::Keema::Type::Enum)
         result = type_to_json_schema(type.values.first.class, openapi: openapi)

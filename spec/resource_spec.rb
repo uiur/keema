@@ -12,7 +12,7 @@ RSpec.describe Keema::Resource do
       field :description, String, null: true
       field :image_url?, String
 
-      field :out_of_stock, Boolean
+      field :out_of_stock, Bool
       field :tags, [String]
 
       field :created_at, Time

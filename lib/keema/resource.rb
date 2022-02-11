@@ -2,7 +2,7 @@ require 'time'
 
 module Keema
   module Type
-    class Boolean; end
+    class Bool; end
 
     class Enum
       attr_reader :values
@@ -13,7 +13,7 @@ module Keema
   end
 
   class Resource
-    Boolean = ::Keema::Type::Boolean
+    Bool = ::Keema::Type::Bool
 
     class <<self
       def field(name, type, null: false, optional: false, **options)
