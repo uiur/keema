@@ -8,7 +8,7 @@ RSpec.describe Keema::Resource do
       field :id, Integer
       field :name, String
       field :price, Float
-      field :status, { enum: [:published, :unpublished] }
+      field :status, enum(:published, :unpublished)
       field :description, String, null: true
       field :image_url?, String
 

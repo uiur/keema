@@ -22,6 +22,10 @@ module Keema
         @fields[field.name] = field
       end
 
+      def enum(*values)
+        ::Keema::Type::Enum.new(values)
+      end
+
       def fields
         @fields ||= {}
       end
