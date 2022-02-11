@@ -76,6 +76,32 @@ RSpec.describe Keema::Resource do
     end
   end
 
+  describe 'define methods in class' do
+    module DefineMethod
+      require 'securerandom'
+      class ProductResource < Keema::Resource
+        field :id, String
+        field :hex, String
+
+        def id
+          "id-#{object.id}"
+        end
+
+        def hex
+          SecureRandom.hex
+        end
+      end
+      Product = Struct.new(:id, keyword_init: true)
+    end
+
+    it do
+      expect(
+        DefineMethod::ProductResource.partial([:id])
+          .serialize(DefineMethod::Product.new(id: 1234))
+      ).to match(id: 'id-1234')
+    end
+  end
+
   describe 'nested resource' do
     module Nested
       class ProductImageResource < Keema::Resource

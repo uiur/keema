@@ -57,7 +57,7 @@ module Keema
       end
 
       def partial(selector)
-        klass = Class.new(self.superclass)
+        klass = Class.new(self)
         field_selector = FieldSelector.new(resource: self, selector: selector)
         field_selector.field_names.each do |name|
           nested_fields = field_selector.fetch(name)
