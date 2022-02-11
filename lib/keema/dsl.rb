@@ -43,7 +43,7 @@ module Keema
     end
 
     def param(name, type, required: true, default: nil)
-      field = ::Keema::Resource::Field.new(name: name, type: type)
+      field = ::Keema::Field.new(name: name, type: type)
       parameter = Parameter.new(name: name, field: field, required: required, default: default)
       @parameters ||= []
       @parameters << parameter

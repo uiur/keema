@@ -36,8 +36,7 @@ RSpec.describe Keema::Resource do
 
     describe '#serialize' do
       it 'returns serializable hash' do
-        resource = ProductResource.new(product)
-        hash = resource.serialize
+        hash = ProductResource.serialize(product)
         expect(hash).to match(
           id: 1,
           name: 'foo',
@@ -69,7 +68,7 @@ RSpec.describe Keema::Resource do
       it 'returns partial resource class' do
         partial_resource_klass = ProductResource.partial([:id, :name])
         expect(partial_resource_klass.to_json_schema).to match(Hash)
-        expect(partial_resource_klass.new(product).serialize).to match(
+        expect(partial_resource_klass.serialize(product)).to match(
           id: Integer,
           name: String
         )
@@ -98,7 +97,7 @@ RSpec.describe Keema::Resource do
 
     it do
       puts JSON.pretty_generate(Nested::ProductResource.to_json_schema)
-      pp Nested::ProductResource.new(product).serialize
+      pp Nested::ProductResource.serialize(product)
     end
   end
 end
