@@ -1,6 +1,7 @@
 module Keema
   class Field
     attr_reader :name, :type, :null, :optional
+    attr_writer :type
     def initialize(name:, type:, null: false, optional: false)
       parsed_name, parsed_optional = parse_name(name)
       @name = parsed_name

@@ -97,7 +97,28 @@ RSpec.describe Keema::Resource do
 
     it do
       puts JSON.pretty_generate(Nested::ProductResource.to_json_schema)
-      pp Nested::ProductResource.serialize(product)
+      expect(Nested::ProductResource.serialize(product)).to match(
+        id: Integer,
+        product_images: [
+          { id: Integer, url: String },
+          { id: Integer, url: String }
+        ]
+      )
+
+      expect(
+        Nested::ProductResource
+          .partial([
+            :id,
+            product_images: [:id]
+          ])
+          .serialize(product)
+      ).to match(
+        id: Integer,
+        product_images: [
+          { id: Integer },
+          { id: Integer }
+        ]
+      )
     end
   end
 end

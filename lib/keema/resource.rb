@@ -26,10 +26,49 @@ module Keema
         @fields ||= {}
       end
 
-      def partial(field_names)
+      class FieldSelector
+        attr_reader :selector, :resource
+        def initialize(resource:, selector:)
+          @resource = resource
+          @selector = selector
+        end
+
+        def field_names
+          selector.reduce([]) do |result, item|
+            result += item.is_a?(Hash) ? item.keys : [item]
+          end
+        end
+
+        def fetch(name)
+          nested_map[name]
+        end
+
+        def nested_map
+          if selector[-1]&.is_a?(Hash)
+            selector[-1]
+          else
+            {}
+          end
+        end
+      end
+
+      def partial(selector)
         klass = Class.new(self.superclass)
-        field_names.each do |name|
-          klass.fields[name] = fields[name].dup
+        field_selector = FieldSelector.new(resource: self, selector: selector)
+        field_selector.field_names.each do |name|
+          nested_fields = field_selector.fetch(name)
+
+          field = fields[name].dup
+          klass.fields[name] =
+            if nested_fields
+              is_array = field.type.is_a?(Array)
+              inner_type = is_array ? field.type.first : field.type
+              partial_type = inner_type.partial(nested_fields)
+              field.type = is_array ? [partial_type] : partial_type
+              field
+            else
+              field
+            end
         end
 
         klass
