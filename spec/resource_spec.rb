@@ -10,7 +10,7 @@ RSpec.describe Keema::Resource do
       field :price, Float
       field :status, { enum: [:published, :unpublished] }
       field :description, String, null: true
-      field :image_url, String, optional: true
+      field :image_url?, String
 
       field :out_of_stock, Boolean
       field :tags, [String]

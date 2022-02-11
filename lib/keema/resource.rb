@@ -18,7 +18,8 @@ module Keema
     class <<self
       def field(name, type, null: false, optional: false, **options)
         @fields ||= {}
-        @fields[name] = ::Keema::Field.new(name: name, type: type, null: null, optional: optional)
+        field = ::Keema::Field.new(name: name, type: type, null: null, optional: optional)
+        @fields[field.name] = field
       end
 
       def fields

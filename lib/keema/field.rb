@@ -2,10 +2,11 @@ module Keema
   class Field
     attr_reader :name, :type, :null, :optional
     def initialize(name:, type:, null: false, optional: false)
-      @name = name
+      parsed_name, parsed_optional = parse_name(name)
+      @name = parsed_name
       @type = convert_type(type)
       @null = null
-      @optional = optional
+      @optional = parsed_optional || optional
     end
 
     def convert_type(type)
@@ -50,6 +51,14 @@ module Keema
     end
 
     private
+
+    def parse_name(name)
+      is_optional = name.end_with?('?')
+      real_name = is_optional ? name[0..-2] : name
+
+      [real_name.to_sym, is_optional]
+    end
+
     def type_to_json_schema(type, openapi: false)
       case
       when type == Integer
