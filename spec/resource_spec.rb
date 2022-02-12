@@ -43,7 +43,6 @@ RSpec.describe Keema::Resource do
           status: 'published',
           price: 12.3,
           description: nil,
-          image_url: 'foo.png',
           out_of_stock: false,
           tags: ['food', 'sushi'],
           created_at: String
@@ -64,11 +63,11 @@ RSpec.describe Keema::Resource do
       end
     end
 
-    describe '.partial' do
-      it 'returns partial resource class' do
-        partial_resource_klass = ProductResource.partial([:id, :name])
-        expect(partial_resource_klass.to_json_schema).to match(Hash)
-        expect(partial_resource_klass.serialize(product)).to match(
+    describe '.select' do
+      it 'returns select resource class' do
+        select_resource_klass = ProductResource.select([:id, :name])
+        expect(select_resource_klass.to_json_schema).to match(Hash)
+        expect(select_resource_klass.serialize(product)).to match(
           id: Integer,
           name: String
         )
@@ -96,7 +95,7 @@ RSpec.describe Keema::Resource do
 
     it do
       expect(
-        DefineMethod::ProductResource.partial([:id])
+        DefineMethod::ProductResource.select([:id])
           .serialize(DefineMethod::Product.new(id: 1234))
       ).to match(id: 'id-1234')
     end
@@ -133,7 +132,7 @@ RSpec.describe Keema::Resource do
 
       expect(
         Nested::ProductResource
-          .partial([
+          .select([
             :id,
             product_images: [:id]
           ])

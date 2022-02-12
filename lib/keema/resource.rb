@@ -56,19 +56,26 @@ module Keema
         end
       end
 
-      def partial(selector)
+      def select(selector)
         klass = Class.new(self)
         field_selector = FieldSelector.new(resource: self, selector: selector)
         field_selector.field_names.each do |name|
           nested_fields = field_selector.fetch(name)
 
-          field = fields[name].dup
+          source_field = fields[name]
+          field = ::Keema::Field.new(
+            name: source_field.name,
+            type: source_field.type,
+            null: source_field.null,
+            optional: false,
+          )
+
           klass.fields[name] =
             if nested_fields
               is_array = field.type.is_a?(Array)
               inner_type = is_array ? field.type.first : field.type
-              partial_type = inner_type.partial(nested_fields)
-              field.type = is_array ? [partial_type] : partial_type
+              select_type = inner_type.select(nested_fields)
+              field.type = is_array ? [select_type] : select_type
               field
             else
               field
@@ -121,6 +128,7 @@ module Keema
       @object = object
       hash = {}
       self.class.fields.each do |field_name, field|
+        next if field.optional
         value =
           if respond_to?(field_name)
             send(field_name)

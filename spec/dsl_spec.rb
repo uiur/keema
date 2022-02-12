@@ -23,13 +23,13 @@ RSpec.describe Keema::DSL do
     end
 
     post '/products'
-    body ProductResource.partial([:name])
+    body ProductResource.select([:name])
     response ProductResource
     def create
     end
 
     patch '/products/{id}'
-    body ProductResource.partial([:name])
+    body ProductResource.select([:name])
     response ProductResource
     def update
     end

@@ -43,7 +43,7 @@ RSpec.describe Keema do
     schema.operations << Keema::Operation.new(
       path: '/products',
       method: :post,
-      body: ProductResource.partial([:name]),
+      body: ProductResource.select([:name]),
       responses: {
         '2XX' => ProductResource,
       }
@@ -52,7 +52,7 @@ RSpec.describe Keema do
     schema.operations << Keema::Operation.new(
       path: '/products/{id}',
       method: :patch,
-      body: ProductResource.partial([:name]),
+      body: ProductResource.select([:name]),
       responses: {
         '2XX' => ProductResource,
       }
