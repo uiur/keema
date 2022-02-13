@@ -91,6 +91,7 @@ module Keema
 
       def to_json_schema(openapi: false)
         {
+          type: 'object',
           properties: fields.map do |name, field|
             [
               name, field.to_json_schema(openapi: openapi)

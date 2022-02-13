@@ -54,6 +54,7 @@ RSpec.describe Keema::Resource do
     describe '.to_json_schema' do
       it 'generetes json schema' do
         expect(ProductResource.to_json_schema).to match(
+          type: 'object',
           properties: Hash,
           additionalProperties: false,
           required: Array
