@@ -54,13 +54,15 @@ RSpec.describe Keema::Resource do
     describe '.to_json_schema' do
       it 'generetes json schema' do
         expect(ProductResource.to_json_schema).to match(
-          type: 'object',
+          title: 'ProductResource',
+          type: :object,
           properties: Hash,
           additionalProperties: false,
           required: Array
         )
         expect(ProductResource.to_json_schema(openapi: true)).to match(Hash)
         puts JSON.pretty_generate(ProductResource.to_json_schema)
+        puts JSON.pretty_generate(ProductResource.to_json_schema(use_ref: true))
       end
     end
 
@@ -123,6 +125,35 @@ RSpec.describe Keema::Resource do
 
     it do
       puts JSON.pretty_generate(Nested::ProductResource.to_json_schema)
+      expect(Nested::ProductResource.to_json_schema).to match(hash_including(
+        type: :object,
+        properties: hash_including(
+          product_images: hash_including(
+            type: :array,
+            items: hash_including(
+              type: :object,
+              properties: hash_including(
+                id: Hash,
+                url: Hash
+              )
+            )
+          )
+        )
+      ))
+
+      puts JSON.pretty_generate(Nested::ProductResource.to_json_schema(use_ref: true))
+      expect(Nested::ProductResource.to_json_schema(use_ref: true)).to match(hash_including(
+        type: :object,
+        properties: hash_including(
+          product_images: hash_including(
+            type: :array,
+            items: hash_including(
+              tsType: String
+            )
+          )
+        )
+      ))
+
       expect(Nested::ProductResource.serialize(product)).to match(
         id: Integer,
         product_images: [

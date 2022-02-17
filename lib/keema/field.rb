@@ -37,8 +37,8 @@ module Keema
       is_array ? result : result.first
     end
 
-    def to_json_schema(openapi: false)
-      hash = type_to_json_schema(type, openapi: openapi)
+    def to_json_schema(openapi: false, use_ref: false)
+      hash = ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref).convert_type(type)
 
       if null
         if openapi
@@ -51,6 +51,14 @@ module Keema
       hash
     end
 
+    def is_reference?
+      item_type.respond_to?(:is_keema_resource_class?) && item_type.is_keema_resource_class?
+    end
+
+    def item_type
+      type.is_a?(Array) ? type.first : type
+    end
+
     private
 
     def parse_name(name)
@@ -58,34 +66,6 @@ module Keema
       real_name = is_optional ? name[0..-2] : name
 
       [real_name.to_sym, is_optional]
-    end
-
-    def type_to_json_schema(type, openapi: false)
-      case
-      when type == Integer
-        { type: :integer }
-      when type == Float
-        { type: :number }
-      when type == String || type == Symbol
-        { type: :string }
-      when type == Date
-        { type: :string, format: :date }
-      when type == Time
-        { type: :string, format: :'date-time' }
-      when type == ::Keema::Type::Bool
-        { type: :boolean }
-      when type.is_a?(::Keema::Type::Enum)
-        result = type_to_json_schema(type.values.first.class, openapi: openapi)
-        result[:enum] = type.values
-        result
-      when type.is_a?(Array)
-        item_type = type.first
-        { type: :array, items: type_to_json_schema(item_type, openapi: openapi) }
-      when type.respond_to?(:to_json_schema)
-        type.to_json_schema(openapi: openapi)
-      else
-        raise "unsupported type #{type}"
-      end
     end
   end
 end

@@ -89,12 +89,28 @@ module Keema
         true
       end
 
-      def to_json_schema(openapi: false)
+      def ts_name
+        name
+      end
+
+      def ts_type
+        name.gsub('::', '')
+      end
+
+      def to_json_schema_reference
         {
-          type: 'object',
+          tsType: ts_type,
+          tsTypeImport: underscore(ts_name),
+        }
+      end
+
+      def to_json_schema(openapi: false, use_ref: false)
+        {
+          title: ts_type,
+          type: :object,
           properties: fields.map do |name, field|
             [
-              name, field.to_json_schema(openapi: openapi)
+              name, field.to_json_schema(openapi: openapi, use_ref: use_ref),
             ]
           end.to_h,
           additionalProperties: false,
@@ -105,6 +121,20 @@ module Keema
       def serialize(object, context: {})
         new(context: context).serialize(object)
       end
+
+      private
+
+      def underscore(camel_cased_word)
+        return camel_cased_word unless /[A-Z-]|::/.match?(camel_cased_word)
+        word = camel_cased_word.to_s.gsub("::", "/")
+        # word.gsub!(inflections.acronyms_underscore_regex) { "#{$1 && '_' }#{$2.downcase}" }
+        word.gsub!(/([A-Z\d]+)([A-Z][a-z])/, '\1_\2')
+        word.gsub!(/([a-z\d])([A-Z])/, '\1_\2')
+        word.tr!("-", "_")
+        word.downcase!
+        word
+      end
+
     end
 
     attr_reader :object, :context
@@ -124,6 +154,7 @@ module Keema
     end
 
     private
+
 
     def serialize_one(object)
       @object = object
