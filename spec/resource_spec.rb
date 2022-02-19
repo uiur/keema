@@ -104,8 +104,8 @@ RSpec.describe Keema::Resource do
     end
   end
 
-  describe 'nested resource' do
-    module Nested
+  describe 'nested resource with has-many relationships' do
+    module NestedHasMany
       class ProductImageResource < Keema::Resource
         field :id, Integer
         field :url, String
@@ -120,62 +120,131 @@ RSpec.describe Keema::Resource do
       ProductImage = Struct.new(:id, :url, keyword_init: true)
     end
 
-    let(:product_images) { [Nested::ProductImage.new(id: 1, url: '/foo.png'), Nested::ProductImage.new(id: 2, url: '/bar.png')] }
-    let(:product) { Nested::Product.new(id: 1, product_images: product_images) }
+    context 'resource has many resources' do
+      let(:product_images) { [NestedHasMany::ProductImage.new(id: 1, url: '/foo.png'), NestedHasMany::ProductImage.new(id: 2, url: '/bar.png')] }
+      let(:product) { NestedHasMany::Product.new(id: 1, product_images: product_images) }
 
-    it do
-      puts JSON.pretty_generate(Nested::ProductResource.to_json_schema)
-      expect(Nested::ProductResource.to_json_schema).to match(hash_including(
-        type: :object,
-        properties: hash_including(
-          product_images: hash_including(
-            type: :array,
-            items: hash_including(
-              type: :object,
-              properties: hash_including(
-                id: Hash,
-                url: Hash
+      describe 'to_json_schema' do
+        it 'returns json schema hash' do
+          puts JSON.pretty_generate(NestedHasMany::ProductResource.to_json_schema)
+          expect(NestedHasMany::ProductResource.to_json_schema).to match(hash_including(
+            type: :object,
+            properties: hash_including(
+              product_images: hash_including(
+                type: :array,
+                items: hash_including(
+                  type: :object,
+                  properties: hash_including(
+                    id: Hash,
+                    url: Hash
+                  )
+                )
               )
             )
-          )
-        )
-      ))
+          ))
+        end
+      end
 
-      puts JSON.pretty_generate(Nested::ProductResource.to_json_schema(use_ref: true))
-      expect(Nested::ProductResource.to_json_schema(use_ref: true)).to match(hash_including(
-        type: :object,
-        properties: hash_including(
-          product_images: hash_including(
-            type: :array,
-            items: hash_including(
-              tsType: String
+      describe 'to_json_schema(use_ref: true)' do
+        it 'returns NestedHasMany resource as reference' do
+          puts JSON.pretty_generate(NestedHasMany::ProductResource.to_json_schema(use_ref: true))
+          expect(NestedHasMany::ProductResource.to_json_schema(use_ref: true)).to match(hash_including(
+            type: :object,
+            properties: hash_including(
+              product_images: hash_including(
+                type: :array,
+                items: hash_including(
+                  tsType: String
+                )
+              )
             )
+          ))
+        end
+      end
+
+      describe 'serialize' do
+        it 'returns serialized hash' do
+          expect(NestedHasMany::ProductResource.serialize(product)).to match(
+            id: Integer,
+            product_images: [
+              { id: Integer, url: String },
+              { id: Integer, url: String }
+            ]
           )
+        end
+      end
+
+      describe 'serialize selected resource' do
+        it 'returns serialized hash partially' do
+          expect(
+            NestedHasMany::ProductResource
+              .select([
+                :id,
+                product_images: [:id]
+              ])
+              .serialize(product)
+          ).to match(
+            id: Integer,
+            product_images: [
+              { id: Integer },
+              { id: Integer }
+            ]
+          )
+        end
+      end
+    end
+
+    context 'resource has empty array for relationship' do
+      let(:product) { NestedHasMany::Product.new(id: 1, product_images: []) }
+
+      describe 'serialize' do
+        it 'returns serialized hash with empty array' do
+          expect(NestedHasMany::ProductResource.serialize(product)).to match(
+            id: Integer,
+            product_images: []
+          )
+        end
+      end
+    end
+  end
+
+  describe 'nested resource with has-one relationships' do
+    module NestedHasOne
+      class ProductImageResource < Keema::Resource
+        field :id, Integer
+        field :url, String
+      end
+
+      class ProductResource < Keema::Resource
+        field :id, Integer
+        field :product_image, ProductImageResource
+      end
+
+      Product = Struct.new(:id, :product_image, keyword_init: true)
+      ProductImage = Struct.new(:id, :url, keyword_init: true)
+    end
+
+    context 'it has object as relationship' do
+      let(:product) { NestedHasOne::Product.new(id: 1, product_image: product_image) }
+      let(:product_image) { NestedHasOne::ProductImage.new(id: 1, url: '/foo.png') }
+
+      it do
+        expect(NestedHasOne::ProductResource.serialize(product)).to match(
+          id: Integer,
+          product_image: { id: Integer, url: String }
         )
-      ))
+      end
+    end
 
-      expect(Nested::ProductResource.serialize(product)).to match(
-        id: Integer,
-        product_images: [
-          { id: Integer, url: String },
-          { id: Integer, url: String }
-        ]
-      )
+    context 'it has nil as relationship' do
+      let(:product) { NestedHasOne::Product.new(id: 1, product_image: nil) }
 
-      expect(
-        Nested::ProductResource
-          .select([
-            :id,
-            product_images: [:id]
-          ])
-          .serialize(product)
-      ).to match(
-        id: Integer,
-        product_images: [
-          { id: Integer },
-          { id: Integer }
-        ]
-      )
+      it do
+        expect(NestedHasOne::ProductResource.serialize(product)).to match(
+          id: Integer,
+          product_image: nil
+        )
+      end
     end
   end
 end

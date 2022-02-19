@@ -39,7 +39,15 @@ module Keema
 
         def field_names
           selector.reduce([]) do |result, item|
-            result += item.is_a?(Hash) ? item.keys : [item]
+            if item.is_a?(Hash)
+              result += item.keys
+            else
+              if item == :*
+                result += resource.fields.values.reject(&:optional).map(&:name)
+              else
+                result += [item]
+              end
+            end
           end
         end
 
@@ -63,6 +71,10 @@ module Keema
           nested_fields = field_selector.fetch(name)
 
           source_field = fields[name]
+          unless source_field
+            raise "field `#{name}` is not found in #{self.name}"
+          end
+
           field = ::Keema::Field.new(
             name: source_field.name,
             type: source_field.type,
@@ -169,7 +181,7 @@ module Keema
           elsif object.respond_to?(:"#{field_name}?")
             object.public_send(:"#{field_name}?")
           else
-            raise ::Keema::RuntimeError.new("object does not respond to `#{field_name}` (#{self.class.name})\n#{object.inspect}")
+            raise ::Keema::RuntimeError.new("object #{object.inspect} does not respond to `#{field_name}` (#{self.class.name})")
           end
 
         hash[field_name] = field.cast_value(value)

@@ -27,7 +27,7 @@ module Keema
         case
         when sub_type == Time
           value.iso8601(3)
-        when sub_type.respond_to?(:is_keema_resource_class?) && sub_type.is_keema_resource_class?
+        when value && sub_type.respond_to?(:is_keema_resource_class?) && sub_type.is_keema_resource_class?
           sub_type.serialize(value)
         else
           value
