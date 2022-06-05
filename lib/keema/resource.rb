@@ -106,7 +106,7 @@ module Keema
       end
 
       def ts_type
-        name.gsub('::', '')
+        name&.gsub('::', '')
       end
 
       def to_json_schema_reference
