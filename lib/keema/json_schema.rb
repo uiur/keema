@@ -1,12 +1,25 @@
 module Keema
   class JsonSchema
-    attr_reader :openapi, :use_ref
-    def initialize(openapi: false, use_ref: false)
+    attr_reader :openapi, :use_ref, :depth
+    def initialize(openapi: false, use_ref: false, depth: 0)
       @openapi = openapi
       @use_ref = use_ref
+      @depth = depth
     end
 
-    def convert_type(type)
+    def convert_type(type, nullable: false)
+      hash = convert_real_type(type)
+      if nullable
+        if openapi
+          hash[:nullable] = true
+        else
+          hash[:type] = [hash[:type], :null]
+        end
+      end
+      hash
+    end
+
+    def convert_real_type(type)
       case
       when type == Integer
         { type: :integer }
@@ -27,11 +40,26 @@ module Keema
       when type.is_a?(Array)
         item_type = type.first
         { type: :array, items: convert_type(item_type) }
-      when type.respond_to?(:to_json_schema)
-        if use_ref
-          type.to_json_schema_reference
+      when type.respond_to?(:is_keema_resource_class?)
+        ts_type = type.name&.gsub('::', '')
+
+        if depth > 0 && use_ref
+          {
+            tsType: ts_type,
+            tsTypeImport: self.class.underscore(type.name),
+          }
         else
-          type.to_json_schema(openapi: openapi)
+          {
+            title: ts_type,
+            type: :object,
+            properties: type.fields.map do |name, field|
+              [
+                name, ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref, depth: depth + 1).convert_type(field.type, nullable: field.null),
+              ]
+            end.to_h,
+            additionalProperties: false,
+            required: type.fields.values.reject(&:optional).map(&:name),
+          }
         end
       else
         raise "unsupported type #{type}"

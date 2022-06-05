@@ -101,33 +101,8 @@ module Keema
         true
       end
 
-      def ts_name
-        name
-      end
-
-      def ts_type
-        name&.gsub('::', '')
-      end
-
-      def to_json_schema_reference
-        {
-          tsType: ts_type,
-          tsTypeImport: underscore(ts_name),
-        }
-      end
-
       def to_json_schema(openapi: false, use_ref: false)
-        {
-          title: ts_type,
-          type: :object,
-          properties: fields.map do |name, field|
-            [
-              name, field.to_json_schema(openapi: openapi, use_ref: use_ref),
-            ]
-          end.to_h,
-          additionalProperties: false,
-          required: fields.values.reject(&:optional).map(&:name),
-        }
+        ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref).convert_type(self)
       end
 
       def serialize(object, context: {})

@@ -38,21 +38,7 @@ module Keema
     end
 
     def to_json_schema(openapi: false, use_ref: false)
-      hash = ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref).convert_type(type)
-
-      if null
-        if openapi
-          hash[:nullable] = true
-        else
-          hash[:type] = [hash[:type], :null]
-        end
-      end
-
-      hash
-    end
-
-    def is_reference?
-      item_type.respond_to?(:is_keema_resource_class?) && item_type.is_keema_resource_class?
+      ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref).convert_type(type)
     end
 
     def item_type
