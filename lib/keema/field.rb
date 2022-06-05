@@ -18,25 +18,6 @@ module Keema
       end
     end
 
-    def cast_value(value)
-      is_array = type.is_a?(Array)
-      sub_type = is_array ? type.first : type
-      values = is_array ? value : [value]
-
-      result = values.map do |value|
-        case
-        when sub_type == Time
-          value.iso8601(3)
-        when value && sub_type.respond_to?(:is_keema_resource_class?) && sub_type.is_keema_resource_class?
-          sub_type.serialize(value)
-        else
-          value
-        end
-      end
-
-      is_array ? result : result.first
-    end
-
     def to_json_schema(openapi: false, use_ref: false)
       ::Keema::JsonSchema.new(openapi: openapi, use_ref: use_ref).convert_type(type)
     end

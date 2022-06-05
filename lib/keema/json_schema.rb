@@ -41,16 +41,15 @@ module Keema
         item_type = type.first
         { type: :array, items: convert_type(item_type) }
       when type.respond_to?(:is_keema_resource_class?)
-        ts_type = type.name&.gsub('::', '')
-
+        type = type.is_a?(::Class) ? type.new : type
         if depth > 0 && use_ref
           {
-            tsType: ts_type,
-            tsTypeImport: self.class.underscore(type.name),
+            tsType: type.ts_type,
+            tsTypeImport: self.class.underscore(type.ts_type),
           }
         else
           {
-            title: ts_type,
+            title: type.ts_type,
             type: :object,
             properties: type.fields.map do |name, field|
               [
@@ -58,7 +57,7 @@ module Keema
               ]
             end.to_h,
             additionalProperties: false,
-            required: type.fields.values.reject(&:optional).map(&:name),
+            required: type.fields.values.map(&:name),
           }
         end
       else
